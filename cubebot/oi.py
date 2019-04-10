@@ -30,7 +30,7 @@ class OI:
         deadzone = 0.1
         if abs(i) < deadzone:
             return 0
-        return math.pow(i, 3)/2
+        return math.pow(i, 3)/1.25
 
     def reset(self):
         self.left_power = 0
@@ -51,7 +51,7 @@ class OI:
         self.left_power = self.driver_controller.getY(XboxController.Hand.kLeft)
         
         if self.arcade_drive:
-            self.right_power = self.driver_controller.getX(XboxController.Hand.kRight)
+            self.right_power = self.driver_controller.getX(XboxController.Hand.kRight)*1.25
         else:
             self.right_power = self.driver_controller.getY(XboxController.Hand.kRight)
 
@@ -60,10 +60,8 @@ class OI:
         self.right_power = self.curve_input(self.right_power*reversed_constant)
         
         if self.turbo:
-            self.left_power *= 2
-            self.right_power *= 2
-
-        print(self.left_power)
+            self.left_power *= 1.25
+            self.right_power *= 1.25
 
         if self.get_button_config_pressed(self.driver_controller, "reset"):
             self.reset()

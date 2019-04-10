@@ -27,6 +27,8 @@ class MyRobot(magicbot.MagicRobot):
 
         self.oi = OI()
 
+        wpilib.CameraServer.launch('vision.py:main')
+
     def teleopInit(self):
         pass
     

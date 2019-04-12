@@ -1,0 +1,5 @@
+{
+    "port": "COM22",
+    "board": "arduino:avr:uno",
+    "sketch": "ardStrip\\strip.ino"
+}

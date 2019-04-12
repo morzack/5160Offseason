@@ -7,7 +7,7 @@ def configure_drivetrain(motor: ctre.WPI_TalonSRX):
     """
     # TODO make sure to uncomment next line on first test/deploy
     # motor.configFactoryDefault()
-    motor.configOpenLoopRamp(0.5)
+    motor.configOpenLoopRamp(0.2)
     motor.clearStickyFaults()
     motor.enableCurrentLimit(True)
     motor.configContinuousCurrentLimit(10)

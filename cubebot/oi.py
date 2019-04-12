@@ -1,4 +1,4 @@
-from wpilib import XboxController
+from wpilib import XboxController, Joystick
 
 import math
 
@@ -9,13 +9,13 @@ class OI:
         self.turbo = False
 
         self.controls = {
-            "reverse" :         XboxController.Button.kB,
-            "arcade_switch" :   XboxController.Button.kX,
-            "turbo" :           XboxController.Button.kY,
-            "reset" :           XboxController.Button.kA
+            "reverse" :         2, # top
+            "arcade_switch" :   3,
+            "turbo" :           1, # trigger
+            "reset" :           4
         }
 
-        self.driver_controller = XboxController(0)
+        self.driver_controller = Joystick(0)
 
         self.left_power = 0
         self.right_power = 0
@@ -48,13 +48,10 @@ class OI:
 
         self.turbo = self.get_button_config_held(self.driver_controller, "turbo")
 
-        self.left_power = self.driver_controller.getY(XboxController.Hand.kLeft)
+        self.left_power = self.driver_controller.getY()
         
-        if self.arcade_drive:
-            self.right_power = self.driver_controller.getX(XboxController.Hand.kRight)*1.25
-        else:
-            self.right_power = self.driver_controller.getY(XboxController.Hand.kRight)
-
+        self.right_power = self.driver_controller.getTwist()*1.25
+        
         reversed_constant = -1 if self.reversed else 1
         self.left_power = self.curve_input(self.left_power*reversed_constant)
         self.right_power = self.curve_input(self.right_power*reversed_constant)

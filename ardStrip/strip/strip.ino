@@ -14,7 +14,7 @@ void setup() {
     Serial.begin(9600);
     strip.begin();
     strip.show();
-    strip.setBrightness(100);
+    strip.setBrightness(200);
 }
 
 void setColor(uint32_t color) {

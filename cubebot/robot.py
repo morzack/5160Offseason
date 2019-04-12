@@ -2,15 +2,19 @@ import magicbot
 import wpilib
 from ctre import WPI_TalonSRX
 
+import serial
+
 import robotmap
 
 import motor_configuration
 
 from components.drivetrain import Drivetrain
+from components.led_driver import LEDDriver
 from oi import OI
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain : Drivetrain
+    led_driver : LEDDriver
 
     def createObjects(self):
         self.front_left_motor = WPI_TalonSRX(robotmap.front_left_drive)
@@ -27,10 +31,18 @@ class MyRobot(magicbot.MagicRobot):
 
         self.oi = OI()
 
+        self.arduino_serial_connection = serial.Serial(
+            port=robotmap.com_port,
+            baudrate=9600,
+            parity=serial.PARITY_ODD,
+            stopbits=serial.STOPBITS_TWO,
+            bytesize=serial.SEVENBITS
+        )
+
         wpilib.CameraServer.launch('vision.py:main')
 
     def teleopInit(self):
-        pass
+        self.led_driver.write_color()
     
     def teleopPeriodic(self):
         self.oi.execute()

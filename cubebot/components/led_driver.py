@@ -12,7 +12,7 @@ class Color:
         return [self.r, self.g, self.b, self.a]
 
     def __str__(self):
-        return "{},{},{},{}\r\n".format(str(self.r).zfill(3), str(self.g).zfill(3), str(self.b).zfill(3), str(self.a).zfill(3))
+        return "{} {} {} {}\r\n".format(str(self.r).zfill(3), str(self.g).zfill(3), str(self.b).zfill(3), str(self.a).zfill(3))
 
 class NeoPixelStrip:
     def __init__(self):

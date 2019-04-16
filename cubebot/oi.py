@@ -50,7 +50,7 @@ class OI:
 
         self.left_power = self.driver_controller.getY()
         
-        self.right_power = self.driver_controller.getTwist()*1.25
+        self.right_power = self.driver_controller.getTwist()
         
         reversed_constant = -1 if self.reversed else 1
         self.left_power = self.curve_input(self.left_power*reversed_constant)

@@ -4,7 +4,7 @@ import math
 
 class OI:
     def __init__(self):
-        self.reversed = False
+        self.reversed = True
         self.arcade_drive = True
         self.turbo = False
 

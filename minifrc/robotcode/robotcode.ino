@@ -1,54 +1,75 @@
+// libraries
 #include <SoftwareSerial.h>
 #include <AFMotor.h>
 
-// set all of the constants and things to use
-int left_motor_port = 1;
-int right_motor_port = 3;
+// custom code stuff
+#include "drivetrain.h"
 
 // objects
 SoftwareSerial bluetooth(A0, A1);
+DifferentialDrivetrain drivetrain(1, 3); // 1 is left port, 3 is right
 
-// motors
-AF_DCMotor left_motors(left_motor_port);
-AF_DCMotor right_motors(right_motor_port);
+// game state enumeration
+enum GameState {disabled, autonomous, teleop};
+GameState game_state = teleop;  // TODO: note that this is just for testing. start disabled probably
 
-// input objects
-float deadzone = -0.05;
-float x_power_multiplier = 1;
-float y_power_multiplier = 1;
-float x_axis, y_axis;
-bool beast_mode = false;
+// input handling things
+float x1_input_multiplier = 1;
+float x2_input_multiplier = 1;
+float y_input_multiplier = 1;
+float x1_input, x2_input, y_input;
+bool beast_mode;
 
+// arduino setup
 void setup() {
     bluetooth.begin(9600);
-    drive(0, 0);
+    drivetrain.set_power(0, 0);
 }
 
 void loop() {
     // handle user input
-    // it'll be formatted as x,y,beastMode
+    // it'll be formatted as x1,x2,y,beastMode
     while (bluetooth.available() > 0) {
         if (bluetooth.read() == 'z') { // iirc z is the delimiter for the data sent
-            x_axis = bluetooth.parseFloat()*x_power_multiplier;
-            y_axis = bluetooth.parseFloat()*y_power_multiplier;
-            int b_m = bluetooth.parseInt();
+            // grab the raw user input
+            x1_input = bluetooth.parseFloat()*x1_input_multiplier;
+            x2_input = bluetooth.parseFloat()*x2_input_multiplier;
+            y_input = bluetooth.parseFloat()*y_input_multiplier;
+            beast_mode = bluetooth.parseFloat()==1;
+            // handle deadzone and all that cool jazz
+            float axis_deadzone = 0.05;
+            x1_input = handle_deadzone(x1_input, 0.05);
+            x2_input = handle_deadzone(x2_input, 0.05);
+            y_input = handle_deadzone(y_input, 0.05);
+            x1_input = curve_input(x1_input);
+            x2_input = curve_input(x2_input);
+            y_input = curve_input(y_input);
         }
     }
+
+    // handle the game based on current state
+    switch (game_state) {
+        case disabled:
+            drivetrian.disable();
+            break;
+        case autonomous:
+            break;
+        case teleop:
+            drivetrain.enable();
+            drivetrain.tank_drive(x1_input, x2_input);
+            break;
+    }
+
+    // update robot components
+    drivetrain.update_motors();
 }
 
-void tank_drive(int left_axis, int right_axis) {
-    // tank drive given the power and rotation
-    // basically do the beast mode calculations in math like a sane person
-    int lV = !beast_mode?left_axis:-right_axis;
-    int rV = !beast_mode?right_axis:-left_axis;
-    // run motors
-    left_motors.run((lV>0)?FORWARD:BACKWARD);
-    left_motors.setSpeed(abs(lV));
-    right_motors.run((rV>0)?FORWARD:BACKWARD);
-    right_motors.setSpeed(abs(rV));
-}
-
-float handle_deadzone(int i, int deadzone) {
+float handle_deadzone(float i, int deadzone) {
     // handle a deadzone
     return (abs(i)>deadzone)?i:0;
+}
+
+float curve_input(float i) {
+    // we'll use x^3 for motor curving because why not
+    return i*i*i;
 }

@@ -3,11 +3,9 @@
 #include <AFMotor.h>
 #include <stdlib.h>
 
-DifferentialDrivetrain::DifferentialDrivetrain(int left_port, int right_port) {
-        left_motor_port_ = left_port;
-        right_motor_port_ = right_port;
-        AF_DCMOTOR left_motor_(left_motor_port_);
-        AF_DCMOTOR right_motor_(right_motor_port_);
+DifferentialDrivetrain::DifferentialDrivetrain(uint8_t left_port, uint8_t right_port) {
+        left_motor_ = new AF_DCMotor(left_port);
+        right_motor_ = new AF_DCMotor(right_port);
         left_power_ = 0;
         right_power_ = 0;
         enabled_ = true; // is it really a good idea to start enabled? eh why not
@@ -48,14 +46,14 @@ void DifferentialDrivetrain::disable() {
 
 void DifferentialDrivetrain::update_motors() {
         // set motor direction
-        left_motor_.run((left_power_>0) ? FORWARD : BACKWARD);
-        right_motor_.run((right_power_>0) ? FORWARD : BACKWARD);
+        left_motor_->run((left_power_>0) ? FORWARD : BACKWARD);
+        right_motor_->run((right_power_>0) ? FORWARD : BACKWARD);
         // set motor powers depending on enabled state
         if (enabled_) {
-                left_motor_.setSpeed(abs(left_power_));
-                right_motor_.setSpeed(abs(right_power_));
+                left_motor_->setSpeed(abs(left_power_));
+                right_motor_->setSpeed(abs(right_power_));
         } else {
-                left_motor_.setSpeed(0);
-                right_motor_.setSpeed(0);
+                left_motor_->setSpeed(0);
+                right_motor_->setSpeed(0);
         }
 }

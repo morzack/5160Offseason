@@ -50,7 +50,7 @@ void loop() {
     // handle the game based on current state
     switch (game_state) {
         case disabled:
-            drivetrian.disable();
+            drivetrain.disable();
             break;
         case autonomous:
             break;

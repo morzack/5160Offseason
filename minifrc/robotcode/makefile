@@ -1,5 +1,6 @@
 all:
 	clear
+	clear
 	arduino-cli compile -b arduino:avr:uno ../robotcode
 
 clean : 

@@ -29,6 +29,9 @@ void Command::update() {
                     Command::run();
             }
         }
+        else {
+                next_command_->update();
+        }
 }
 
 void Command::finish() {
@@ -60,4 +63,15 @@ void JustSendIt::run() {
         drivetrain_->enable();
         drivetrain_->set_power(1, 1);
         drivetrain_->update_motors();
+}
+
+
+// IdleLoop implementation
+
+IdleLoop::IdleLoop() : Command(NULL) {}
+
+void IdleLoop::run() {}
+
+bool IdleLoop::is_finished() {
+        return false;
 }

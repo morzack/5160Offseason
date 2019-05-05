@@ -37,4 +37,11 @@ class JustSendIt : public TimedCommand {
                 virtual void run();
 };
 
+class IdleLoop : public Command {
+        public:
+                IdleLoop();
+                void run();
+                bool is_finished();
+};
+
 #endif

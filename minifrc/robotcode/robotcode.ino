@@ -4,6 +4,7 @@
 
 // custom code stuff
 #include "drivetrain.h"
+#include "autonomouscommand.h"
 
 // objects
 SoftwareSerial bluetooth(A0, A1);
@@ -19,6 +20,9 @@ float x2_input_multiplier = 1;
 float y_input_multiplier = 1;
 float x1_input, x2_input, y_input;
 bool beast_mode;
+
+// autonomous command group
+JustSendIt send(&drivetrain, new IdleLoop());
 
 // arduino setup
 void setup() {
@@ -54,6 +58,8 @@ void loop() {
             drivetrain.disable();
             break;
         case autonomous:
+            send.start();
+            send.update();
             break;
         case teleop:
             drivetrain.enable();

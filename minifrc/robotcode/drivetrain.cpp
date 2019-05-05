@@ -1,4 +1,4 @@
-// drivetrain.cc
+// drivetrain.cpp
 #include "drivetrain.h"
 #include <AFMotor.h>
 #include <stdlib.h>

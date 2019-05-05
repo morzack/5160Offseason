@@ -48,6 +48,7 @@ void loop() {
     }
 
     // handle the game based on current state
+    // hmm so the thing to note is that autonomous will have to be iterative...
     switch (game_state) {
         case disabled:
             drivetrain.disable();

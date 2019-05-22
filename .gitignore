@@ -1,3 +1,5 @@
+*.elf
+*.hex
 .vscode
 
 # Byte-compiled / optimized / DLL files

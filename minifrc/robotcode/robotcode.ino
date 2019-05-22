@@ -1,33 +1,42 @@
 // libraries
 #include <SoftwareSerial.h>
 #include <AFMotor.h>
-
-// custom code stuff
-#include "drivetrain.h"
-#include "autonomouscommand.h"
+#include <SimpleSoftwareServo.h>
 
 // objects
 SoftwareSerial bluetooth(A0, A1);
-DifferentialDrivetrain drivetrain(1, 3); // 1 is left port, 3 is right
+
+// TODO Proper configuration!!
+
+// motors
+AF_DCMotor leftDriveMotor(1);
+AF_DCMotor rightDriveMotor(2);
+AF_DCMotor liftMotor(3);
+
+// servos
+SimpleSoftwareServo rotator;
+SimpleSoftwareServo grabber;
+float rotatorPosition = 200;
 
 // game state enumeration
 enum GameState {disabled, autonomous, teleop};
 GameState game_state = teleop;  // TODO: note that this is just for testing. start disabled probably
 
 // input handling things
-float x1_input_multiplier = 1;
-float x2_input_multiplier = 1;
-float y_input_multiplier = 1;
-float x1_input, x2_input, y_input;
-bool beast_mode;
+float xInputMultiplier = 1;
+float yInputMultiplier = 1;
 
-// autonomous command group
-JustSendIt send(&drivetrain, new IdleLoop());
+// input variables
+float xInput, yInput, liftInput, rotatorInput, grabberInput;
+// note the first 3 required a lowered lift
+float groundPosInput, lv1PosInput, lv2PosInput, lv3PosInput;
+
+// programmed rotator positions; index goes with position from gnd to lv3
+int rotatorPositions[4] = {10, 30, 70, 55};
 
 // arduino setup
 void setup() {
     bluetooth.begin(9600);
-    drivetrain.set_power(0, 0);
 }
 
 void loop() {
@@ -36,47 +45,78 @@ void loop() {
     while (bluetooth.available() > 0) {
         if (bluetooth.read() == 'z') { // iirc z is the delimiter for the data sent
             // grab the raw user input
-            x1_input = bluetooth.parseFloat()*x1_input_multiplier;
-            x2_input = bluetooth.parseFloat()*x2_input_multiplier;
-            y_input = bluetooth.parseFloat()*y_input_multiplier;
-            beast_mode = bluetooth.parseFloat()==1;
-            // handle deadzone and all that cool jazz
-            float axis_deadzone = 0.05;
-            x1_input = handle_deadzone(x1_input, 0.05);
-            x2_input = handle_deadzone(x2_input, 0.05);
-            y_input = handle_deadzone(y_input, 0.05);
-            x1_input = curve_input(x1_input);
-            x2_input = curve_input(x2_input);
-            y_input = curve_input(y_input);
+            // drive controls
+            xInput = bluetooth.parseFloat() * 100 * xInputMultiplier;
+            yInput = bluetooth.parseFloat() * 100 * yInputMultiplier;
+            // lift controls
+            liftInput = bluetooth.parseFloat() * 100;
+            // grabber control
+            grabberInput = bluetooth.parseFloat();
+            // rotator arm control and positions
+            rotatorInput = bluetooth.parseFloat();
+            groundPosInput = bluetooth.parseFloat();
+            lv1PosInput = bluetooth.parseFloat();
+            lv2PosInput = bluetooth.parseFloat();
+            lv3PosInput = bluetooth.parseFloat();
+
+            // set rotator position
+            if (groundPosInput == 1) {
+                rotatorPosition = rotatorPositions[0];
+            } else if (lv1PosInput == 1) {
+                rotatorPosition = rotatorPositions[1];
+            } else if (lv2PosInput == 1) {
+                rotatorPosition = rotatorPositions[2];
+            } else if (lv3PosInput == 1) {
+                rotatorPosition = rotatorPositions[3];
+            }
+            
+            // update rotator based on input
+            if (rotatorInput == 1) {
+                rotatorPosition -= 10;
+            } else if (rotatorInput == -1) { 
+                rotatorPosition -= 10;
+            }
+
+            // update things
+            moveRotator(rotatorPosition);
+            updateGrabber(grabberInput == 1);
+            drive(xInput, yInput);
+            lift(liftInput);
         }
     }
-
-    // handle the game based on current state
-    // hmm so the thing to note is that autonomous will have to be iterative...
-    switch (game_state) {
-        case disabled:
-            drivetrain.disable();
-            break;
-        case autonomous:
-            send.start();
-            send.update();
-            break;
-        case teleop:
-            drivetrain.enable();
-            drivetrain.tank_drive(x1_input, x2_input);
-            break;
-    }
-
-    // update robot components
-    drivetrain.update_motors();
 }
 
-float handle_deadzone(float i, int deadzone) {
+// honestly none of this really matters if we use kbd to drive
+float handleDeadzone(float i, int deadzone) {
     // handle a deadzone
     return (abs(i)>deadzone)?i:0;
 }
 
-float curve_input(float i) {
+float curveInput(float i) {
     // we'll use x^3 for motor curving because why not
     return i*i*i;
+}
+
+void drive(float x, float y) {
+    float v = (100 - abs(x)) * (y/100) + y;
+    float w = (100 - abs(y)) * (x/100) + x;
+    float lPower = (v-w)*1.275;
+    float rPower = (v+w)*1.275;
+    rightDriveMotor.run(rPower >= 0 ? FORWARD : BACKWARD);
+    leftDriveMotor.run(lPower >= 0 ? FORWARD : BACKWARD);
+    rightDriveMotor.setSpeed(abs(rPower));
+    leftDriveMotor.setSpeed(abs(lPower));
+}
+
+void lift(float l) {
+    liftMotor.run(l >= 0 ? FORWARD : BACKWARD);
+    liftMotor.setSpeed(abs(l)/2);
+}
+
+void moveRotator(int pos) {
+    rotator.write(constrain(pos, 10, 120));
+}
+
+void updateGrabber(bool open) {
+    grabber.write(open ? 119 : 179);
 }

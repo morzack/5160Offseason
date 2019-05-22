@@ -18,18 +18,16 @@ SimpleSoftwareServo rotator;
 SimpleSoftwareServo grabber;
 float rotatorPosition = 200;
 
-// game state enumeration
-enum GameState {disabled, autonomous, teleop};
-GameState game_state = teleop;  // TODO: note that this is just for testing. start disabled probably
-
 // input handling things
 float xInputMultiplier = 1;
 float yInputMultiplier = 1;
 
 // input variables
-float xInput, yInput, liftInput, rotatorInput, grabberInput;
+float xInput, yInput, liftInput, rotatorInput, grabberInput, autonomousInput;
 // note the first 3 required a lowered lift
 float groundPosInput, lv1PosInput, lv2PosInput, lv3PosInput;
+
+bool driverControlled = true;
 
 // programmed rotator positions; index goes with position from gnd to lv3
 int rotatorPositions[4] = {10, 30, 70, 55};
@@ -58,6 +56,7 @@ void loop() {
             lv1PosInput = bluetooth.parseFloat();
             lv2PosInput = bluetooth.parseFloat();
             lv3PosInput = bluetooth.parseFloat();
+            autonomousInput = bluetooth.parseFloat();
 
             // set rotator position
             if (groundPosInput == 1) {
@@ -76,12 +75,21 @@ void loop() {
             } else if (rotatorInput == -1) { 
                 rotatorPosition -= 10;
             }
+        }
 
+        if (driverControlled) {
             // update things
             moveRotator(rotatorPosition);
             updateGrabber(grabberInput == 1);
             drive(xInput, yInput);
             lift(liftInput);
+        }
+        else {
+            // yeet
+            drive(0, 100);
+            delay(3*1000);
+            drive(0, 0);
+            driverControlled = true;
         }
     }
 }

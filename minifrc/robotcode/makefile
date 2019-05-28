@@ -3,5 +3,5 @@ all:
 	clear
 	arduino-cli compile -b arduino:avr:uno ../robotcode
 
-clean : 
+clean:
 	rm *.elf *.hex
